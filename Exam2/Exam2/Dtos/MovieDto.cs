@@ -1,10 +1,18 @@
-﻿using System;
+﻿using Exam2.Models;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Exam2.Dtos
+namespace Exam2.Dtos;
+
+public class MovieDto
 {
-    internal class MovieDto
-    {
-    }
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public string T ype { get; set; }
+    public string Url { get; set; }
+    public string Url2 { get; set; }
+    = string.Empty;
+
 }
