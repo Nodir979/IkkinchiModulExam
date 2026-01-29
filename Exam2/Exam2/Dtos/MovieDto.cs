@@ -7,12 +7,10 @@ namespace Exam2.Dtos;
 
 public class MovieDto
 {
-    public int Id { get; set; }
-    public string Name { get; set; }
-    public string Description { get; set; }
-    public string T ype { get; set; }
-    public string Url { get; set; }
-    public string Url2 { get; set; }
-    = string.Empty;
-
+    public string Title { get; set; }
+    public string Director { get; set; }
+    public int DurationMinutes { get; set; }
+    public double Rating { get; set; }
+    public long BoxOfficeEarnings { get; set; }
+    public DateTime ReleaseDate { get; set; }
 }

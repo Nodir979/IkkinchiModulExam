@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Exam2.Models;
 
-internal class Movie : MovieDto
+internal class Movie : MovieService
 {
 
 

@@ -7,177 +7,213 @@ using System.Text;
 
 namespace Exam2.Services;
 
+
 public class MovieService : IMoviceService
 {
-    private readonly List<Movie> _movies = new();
+    private List<Movie> _movies = new List<Movie>();
 
-    // CREATE
-    public void Add(Movie movie)
+    public void Add(MovieDto dto)
     {
+        Movie movie = new Movie();
+        movie.Id = Guid.NewGuid();
+        movie.Title = dto.Title;
+        movie.Director = dto.Director;
+        movie.DurationMinutes = dto.DurationMinutes;
+        movie.Rating = dto.Rating;
+        movie.BoxOfficeEarnings = dto.BoxOfficeEarnings;
+        movie.ReleaseDate = dto.ReleaseDate;
+
         _movies.Add(movie);
     }
 
-    // READ
-    public List<MovieDto> GetAll()
+    public void Update(Guid id, MovieDto dto)
     {
-        return _movies.Select(ToDto).ToList();
+        foreach (Movie movie in _movies)
+        {
+            if (movie.Id == id)
+            {
+                movie.Title = dto.Title;
+                movie.Director = dto.Director;
+                movie.DurationMinutes = dto.DurationMinutes;
+                movie.Rating = dto.Rating;
+                movie.BoxOfficeEarnings = dto.BoxOfficeEarnings;
+                movie.ReleaseDate = dto.ReleaseDate;
+                break;
+            }
+        }
     }
 
-    // UPDATE
-    public void Update(Movie movie)
+    public void Delete(Guid id)
     {
-        var existing = _movies.FirstOrDefault(x => x.Id == movie.Id);
-        if (existing == null) return;
+        Movie found = null;
 
-        existing.Title = movie.Title;
-        existing.Director = movie.Director;
-        existing.DurationMinutes = movie.DurationMinutes;
-        existing.Rating = movie.Rating;
-        existing.BoxOfficeEarnings = movie.BoxOfficeEarnings;
-        existing.ReleaseDate = movie.ReleaseDate;
+        foreach (Movie movie in _movies)
+        {
+            if (movie.Id == id)
+            {
+                found = movie;
+                break;
+            }
+        }
+
+        if (found != null)
+            _movies.Remove(found);
     }
 
-    // DELETE
-    public void Delete(int id)
+    public Movie GetById(Guid id)
     {
-        var movie = _movies.FirstOrDefault(x => x.Id == id);
-        if (movie != null)
-            _movies.Remove(movie);
+        foreach (Movie movie in _movies)
+        {
+            if (movie.Id == id)
+                return movie;
+        }
+        return null;
     }
 
-    // 1. Director bo‘yicha filmlar
     public List<MovieDto> GetAllMoviesByDirector(string director)
     {
-        return _movies
-            .Where(x => x.Director == director)
-            .Select(ToDto)
-            .ToList();
+        List<MovieDto> result = new List<MovieDto>();
+
+        foreach (Movie movie in _movies)
+        {
+            if (movie.Director == director)
+            {
+                result.Add(ToDto(movie));
+            }
+        }
+
+        return result;
     }
 
-    // 2. Eng yuqori rating
     public MovieDto GetTopRatedMovie()
     {
-        return _movies
-            .OrderByDescending(x => x.Rating)
-            .Select(ToDto)
-            .FirstOrDefault();
+        Movie best = null;
+
+        foreach (Movie movie in _movies)
+        {
+            if (best == null || movie.Rating > best.Rating)
+                best = movie;
+        }
+
+        return best == null ? null : ToDto(best);
     }
 
-    // 3. Yildan keyin chiqqanlar
     public List<MovieDto> GetMoviesReleasedAfterYear(int year)
     {
-        return _movies
-            .Where(x => x.ReleaseDate.Year > year)
-            .Select(ToDto)
-            .ToList();
+        List<MovieDto> result = new List<MovieDto>();
+
+        foreach (Movie movie in _movies)
+        {
+            if (movie.ReleaseDate.Year > year)
+                result.Add(ToDto(movie));
+        }
+
+        return result;
     }
 
-    // 4. Eng ko‘p daromad
     public MovieDto GetHighestGrossingMovie()
     {
-        return _movies
-            .OrderByDescending(x => x.BoxOfficeEarnings)
-            .Select(ToDto)
-            .FirstOrDefault();
+        Movie top = null;
+
+        foreach (Movie movie in _movies)
+        {
+            if (top == null || movie.BoxOfficeEarnings > top.BoxOfficeEarnings)
+                top = movie;
+        }
+
+        return top == null ? null : ToDto(top);
     }
 
-    // 5. Title bo‘yicha qidirish
     public List<MovieDto> SearchMoviesByTitle(string keyword)
     {
-        return _movies
-            .Where(x => x.Title.Contains(keyword, StringComparison.OrdinalIgnoreCase))
-            .Select(ToDto)
-            .ToList();
+        List<MovieDto> result = new List<MovieDto>();
+
+        foreach (Movie movie in _movies)
+        {
+            if (movie.Title.ToLower().Contains(keyword.ToLower()))
+                result.Add(ToDto(movie));
+        }
+
+        return result;
     }
 
-    // 6. Duration oralig‘i
     public List<MovieDto> GetMoviesWithinDurationRange(int minMinutes, int maxMinutes)
     {
-        return _movies
-            .Where(x => x.DurationMinutes >= minMinutes && x.DurationMinutes <= maxMinutes)
-            .Select(ToDto)
-            .ToList();
+        List<MovieDto> result = new List<MovieDto>();
+
+        foreach (Movie movie in _movies)
+        {
+            if (movie.DurationMinutes >= minMinutes &&
+                movie.DurationMinutes <= maxMinutes)
+            {
+                result.Add(ToDto(movie));
+            }
+        }
+
+        return result;
     }
 
-    // 7. Director bo‘yicha jami daromad
     public long GetTotalBoxOfficeEarningsByDirector(string director)
     {
-        return _movies
-            .Where(x => x.Director == director)
-            .Sum(x => x.BoxOfficeEarnings);
+        long sum = 0;
+
+        foreach (Movie movie in _movies)
+        {
+            if (movie.Director == director)
+                sum += movie.BoxOfficeEarnings;
+        }
+
+        return sum;
     }
 
-    // 8. Rating bo‘yicha sort (katta → kichik)
     public List<MovieDto> GetMoviesSortedByRating()
     {
-        return _movies
-            .OrderByDescending(x => x.Rating)
-            .Select(ToDto)
-            .ToList();
+        List<Movie> temp = new List<Movie>(_movies);
+
+       
+for (int i = 0; i < temp.Count - 1; i++)
+        {
+            for (int j = i + 1; j < temp.Count; j++)
+            {
+                if (temp[i].Rating < temp[j].Rating)
+                {
+                    Movie t = temp[i];
+                    temp[i] = temp[j];
+                    temp[j] = t;
+                }
+            }
+        }
+
+        List<MovieDto> result = new List<MovieDto>();
+        foreach (Movie movie in temp)
+            result.Add(ToDto(movie));
+
+        return result;
     }
 
-    // 9. So‘nggi yillar ichida chiqanlar
     public List<MovieDto> GetRecentMovies(int years)
     {
-        var fromDate = DateTime.Now.AddYears(-years);
-        return _movies
-            .Where(x => x.ReleaseDate >= fromDate)
-            .Select(ToDto)
-            .ToList();
-    }
+        List<MovieDto> result = new List<MovieDto>();
+        DateTime fromDate = DateTime.Now.AddYears(-years);
 
-    private MovieDto ToDto(Movie m)
-    {
-        return new MovieDto
+        foreach (Movie movie in _movies)
         {
-            Id = m.Id,
-            Title = m.Title,
-            Director = m.Director,
-            DurationMinutes = m.DurationMinutes,
-            Rating = m.Rating,
-            BoxOfficeEarnings = m.BoxOfficeEarnings,
-            ReleaseDate = m.ReleaseDate
-        };
+            if (movie.ReleaseDate >= fromDate)
+                result.Add(ToDto(movie));
+        }
+
+        return result;
     }
 
-    List<MovieDto> IMoviceService.GetAllMoviesByDirector(string director)
+    private MovieDto ToDto(Movie movie)
     {
-        throw new NotImplementedException();
-    }
-
-    MovieDto IMoviceService.GetTopRatedMovie()
-    {
-        throw new NotImplementedException();
-    }
-
-    List<MovieDto> IMoviceService.GetMoviesReleasedAfterYear(int year)
-    {
-        throw new NotImplementedException();
-    }
-
-    MovieDto IMoviceService.GetHighestGrossingMovie()
-    {
-        throw new NotImplementedException();
-    }
-
-    List<MovieDto> IMoviceService.SearchMoviesWithinDurationRange(int minMinutes, int maxMinutes)
-    {
-        throw new NotImplementedException();
-    }
-
-    long IMoviceService.GetTotalBoxOfficeEarningsByDirector(string director)
-    {
-        throw new NotImplementedException();
-    }
-
-    List<MovieDto> IMoviceService.GetMoviesSortedByRating()
-    {
-        throw new NotImplementedException();
-    }
-
-    List<MovieDto> IMoviceService.GetRecentMovies(int years)
-    {
-        throw new NotImplementedException();
+        MovieDto dto = new MovieDto();
+        dto.Title = movie.Title;
+        dto.Director = movie.Director;
+        dto.DurationMinutes = movie.DurationMinutes;
+        dto.Rating = movie.Rating;
+        dto.BoxOfficeEarnings = movie.BoxOfficeEarnings;
+        dto.ReleaseDate = movie.ReleaseDate;
+        return dto;
     }
 }
-
